@@ -327,12 +327,11 @@ public class Lab
 					for(j=0; j<mb.getWidth()-1; j++)
 						if(!solver.getRREF().get(i, j).iszero())
 							break;
-					if(j==m.getWidth()-1)
-						if(!solver.getRREF().get(i, j).iszero())
-						{
-							inconsistent = true;
-							break;
-						}
+					if(j==mb.getWidth()-1 && !solver.getRREF().get(i, j).iszero())
+					{
+						inconsistent = true;
+						break;
+					}
 				}
 				if(mh.getRank()==m.getWidth() && !inconsistent)
 				{
