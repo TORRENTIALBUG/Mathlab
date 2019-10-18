@@ -281,7 +281,7 @@ public class Lab
 				System.out.println("The enter the vector b:");
 				inputM(b);
 				Matrix mb = new Matrix(m.getHeight(), m.getWidth()+1);
-				int i, j;
+				int i, j, k;
 				int maxlen = m.getMaxlen();
 				Fraction f=null;
 				for(i=0; i<m.getHeight(); i++)
@@ -321,26 +321,37 @@ public class Lab
 					System.out.print(" = ");
 					System.out.println(b.get(i, 0));
 				}
-				MatrixHandler solver = new MatrixHandler(mb);
-				for(i=0; i<mb.getHeight(); i++)
+				MatrixHandler solver=null;
+				if(!inconsistent)
 				{
-					for(j=0; j<mb.getWidth()-1; j++)
-						if(!solver.getRREF().get(i, j).iszero())
-							break;
-					if(j==mb.getWidth()-1 && !solver.getRREF().get(i, j).iszero())
+					solver = new MatrixHandler(mb);
+					for(i=0; i<mb.getHeight(); i++)
 					{
-						inconsistent = true;
-						break;
+						for(j=0; j<mb.getWidth()-1; j++)
+							if(!solver.getRREF().get(i, j).iszero())
+								break;
+						if(j==mb.getWidth()-1 && !solver.getRREF().get(i, j).iszero())
+						{
+							inconsistent = true;
+							break;
+						}
 					}
 				}
-				if(mh.getRank()==m.getWidth() && !inconsistent)
+				if(!inconsistent)
 				{
-					Matrix mbt = new Matrix(mh.getRank(), mh.getRank()+1);
-					for(i=0; i<mh.getRank(); i++)
-						for(j=0; j<mh.getRank()+1; j++)
-							mbt.set(i, j, mb.get(i, j));
-					solver = new MatrixHandler(mbt);
-					System.out.print("The unique solution of this system is:\n{");
+					if(mh.getRank()==m.getWidth())
+					{
+						Matrix mbt = new Matrix(mh.getRank(), mh.getRank()+1);
+						for(i=0; i<mh.getRank(); i++)
+							for(j=0; j<mh.getRank()+1; j++)
+								mbt.set(i, j, mb.get(i, j));
+						solver = new MatrixHandler(mbt);
+						System.out.print("The unique solution of this system is:\n{");
+					}
+					else
+					{
+						System.out.print("This system has infinitely many solutions:\n{");
+					}
 				}
 				else
 				{
@@ -357,11 +368,65 @@ public class Lab
 					}	
 					solver = new MatrixHandler(mb);
 				}
-				for(i=0; i<m.getWidth(); i++)
+				if(mh.getRank()==m.getWidth() || inconsistent)
+					for(i=0; i<m.getWidth(); i++)
+					{
+						System.out.print(String.format("x_%d = %s", i+1, solver.getRREF().get(i, solver.getMatrix().getWidth()-1)));
+						if(i != m.getWidth()-1)
+							System.out.print(", ");
+					}
+				else
 				{
-					System.out.print(String.format("x_%d = %s", i+1, solver.getRREF().get(i, solver.getMatrix().getWidth()-1)));
-					if(i != m.getWidth()-1)
-						System.out.print(", ");
+					i = 0;
+					j = 0;
+					while(i < m.getWidth() && j < solver.getRREF().getHeight())
+					{
+						if(solver.getRREF().get(j, i).iszero())
+							System.out.print(String.format("x_%d = arbitrary", i+1));
+						else
+						{
+							f = solver.getRREF().get(j, solver.getMatrix().getWidth()-1);
+							if(f.iszero())
+							{
+								System.out.print(String.format("x_%d = ", i+1));
+								for(k=i+1; k<m.getWidth(); k++)
+								{
+									f = solver.getRREF().get(j, k);
+									if(!f.iszero())
+										break;
+								}
+								if(k==m.getWidth())
+									System.out.print("0");
+								else
+								{
+									System.out.print(String.format("%s * x_%d", f.inverse(), k+1));
+									for(k++; k<m.getWidth(); k++)
+									{
+										f = solver.getRREF().get(j, k);
+										if(!f.iszero())
+											System.out.print(String.format(" + %s * x_%d", f.inverse(), k+1));
+									}
+								}
+							}
+							else
+							{
+								System.out.print(String.format("x_%d = %s", i+1, f));
+								for(k=i+1; k<m.getWidth(); k++)
+								{
+									f = solver.getRREF().get(j, k);
+									if(!f.iszero())
+										System.out.print(String.format(" + %s * x_%d", f.inverse(), k+1));
+								}
+								j++;
+							}
+						}
+						if(i++ != m.getWidth()-1)
+							System.out.print(", ");
+					}
+					for(;i < m.getWidth()-1; i++)
+						System.out.print(String.format("x_%d = arbitrary, ", i+1));
+					if(i == m.getWidth()-1)
+						System.out.print(String.format("x_%d = arbitrary", ++i));
 				}
 				System.out.println("}");
 			}

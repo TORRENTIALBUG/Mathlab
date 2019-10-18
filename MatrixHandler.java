@@ -302,14 +302,14 @@ public class MatrixHandler
 			if(width == 1)
 				ps.println("The only one column is a pivot variable because it is not 0.");
 			else if(width == 2)
-				ps.println(String.format("Column %d has a pivot and thus x_%d is free variable and x_%d is leading/basic variables.", leadvars[0], leadvars[0], freevars[0]));
+				ps.println(String.format("Column %d has a pivot and thus x_%d is free variable and x_%d is leading/basic variables.", leadvars[0]+1, leadvars[0]+1, freevars[0]+1));
 			else
-				ps.println(String.format("There is only 1 pivot at column x_%d and thus all variables except x_%d are free variables.", leadvars[0], leadvars[0]));
+				ps.println(String.format("There is only 1 pivot at column x_%d and thus all variables except x_%d are free variables.", leadvars[0]+1, leadvars[0]+1));
 		}
 		else if(nullity == 0)
 			ps.println("Since it is full rank, there is no free variables.");
 		else if(nullity == 1)
-			ps.println(String.format("Clearly, x_%d is the only one free variables because there is no pivot in this column.", freevars[0]));
+			ps.println(String.format("Clearly, x_%d is the only one free variables because there is no pivot in this column.", freevars[0]+1));
 		else
 		{
 			ps.print(String.format("From the RREF, we can see there are %d leading/basic variables:", rank));
@@ -473,6 +473,13 @@ public class MatrixHandler
 	public Matrix getNullspace()
 	{
 		return nullspace;
+	}
+	public boolean isFree(int i)
+	{
+		for(int j=0; j<nullity; j++)
+			if(freevars[j] == i)
+				return true;
+		return false;
 	}
 	public int getRank()
 	{
