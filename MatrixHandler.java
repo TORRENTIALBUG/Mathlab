@@ -2,6 +2,7 @@ package Mathlab;
 
 import java.io.*;
 import java.util.*;
+import java.math.*;
 
 public class MatrixHandler
 {
@@ -18,6 +19,8 @@ public class MatrixHandler
 	private int width, height;
 	private int rank, nullity;
 	private int rowswitching=0;
+	private int maxlen=0;
+
 	private Fraction det;
 
 	private Record toref;
@@ -34,7 +37,7 @@ public class MatrixHandler
 		findinverse = new Record();
 		for(int r=0; r<height; r++)
 			for(int c=0; c<width; c++)
-				if(m.get(r, c).getDenominator() == 0)
+				if(!m.get(r, c).valid())
 				{
 					m.set(r, c, 0);
 					toref.append(0, r, c, null, m);
@@ -46,6 +49,7 @@ public class MatrixHandler
 	{
 		int r=0, c=0;
 		int i=0, j=0, k=0;
+		Fraction mul;
 		// REF
 		int nonzero;
 		ref = original.copy();
@@ -59,6 +63,7 @@ public class MatrixHandler
 				if(nonzero < height)
 				{
 					ref.rowop1(r, nonzero);
+					lenupdate(ref);
 					toref.append(1, r, nonzero, null, ref.copy());
 					rowswitching++;
 				}
@@ -67,12 +72,12 @@ public class MatrixHandler
 				continue;
 			}
 			Fraction negpivot = ref.get(r, c).inverse();
-			Fraction mul;
 			for(;nonzero < height; nonzero++)
 				if(!ref.get(nonzero, c).iszero())
 				{
 					mul = ref.get(nonzero, c).div(negpivot);
 					ref.rowop3(nonzero, r, mul);
+					lenupdate(ref);
 					toref.append(3, nonzero, r, mul, ref.copy());
 				}
 			rank++;
@@ -84,12 +89,11 @@ public class MatrixHandler
 		freevars = new int[nullity];
 		// RREF
 		rref = ref.copy();
-		Fraction mul;
 		r=0; c=0;
 		while(r < height && c < width)
 		{
 			Fraction f = rref.get(r, c);
-			if(f.getDenominator() == 1 && f.getNumerator() == 1)
+			if(f.getDenominator().compareTo(BigInteger.ONE)==0 && f.getNumerator().compareTo(BigInteger.ONE)==0)
 			{
 				for(nonzero=r-1; nonzero>=0; nonzero--)
 				{
@@ -98,6 +102,7 @@ public class MatrixHandler
 					{
 						mul = mul.inverse();
 						rref.rowop3(nonzero, r, mul);
+						lenupdate(rref);
 						torref.append(3, nonzero, r, mul, rref.copy());
 					}
 				}
@@ -109,6 +114,7 @@ public class MatrixHandler
 				mul = new Fraction(1);
 				mul = mul.div(f);
 				rref.rowop2(r, mul);
+				lenupdate(rref);
 				torref.append(2, r, 0, mul, rref.copy());
 				continue;
 			}
@@ -140,7 +146,7 @@ public class MatrixHandler
 		while(r < height && c < width)
 		{
 			Fraction f = rref.get(r, c);
-			if(f.getNumerator() == 1)
+			if(f.getNumerator().compareTo(BigInteger.ONE) == 0)
 			{
 				for(i=0; i<height; i++)
 					colspace.set(i, r, original.get(i, c));
@@ -199,6 +205,7 @@ public class MatrixHandler
 						inverse.rowop2(data.row1, data.mul);
 					else if(data.type == 3)
 						inverse.rowop3(data.row1, data.row2, data.mul);
+					lenupdate(inverse);
 					findinverse.append(data.type, data.row1, data.row2, data.mul, inverse.copy());
 					if(i==0 && !iter.hasNext())
 					{
@@ -214,35 +221,51 @@ public class MatrixHandler
 			}
 		}
 	}
+	private void lenupdate(Matrix m)
+	{
+		int temp;
+		for(int i=0; i<m.getHeight(); i++)
+			for(int j=0; j<m.getWidth(); j++)
+			{
+				temp = m.get(i, j).toString().length()+1;
+				if(temp > maxlen)
+					maxlen = temp;
+			}
+	}
 	public void printRecord(PrintStream ps)
 	{
 		ListIterator iter = toref.iter();
 		Record.Data data;
 		int step = 0;
 		int i, j;
-		ps.println("Reducing to Row Echelon Form(REF): ");
-		while(iter.hasNext())
+		if(toref.length() > 0)
 		{
-			ps.print(String.format("Step%3d. ", ++step));
-			data = (Record.Data)iter.next();
-			if(data.type == 0)
-				ps.println(String.format("Undefined value at (%d, %d) automaticlly changed to 0.", data.row1+1, data.row2+1));
-			else if(data.type == 1)
-				ps.println(String.format("Row-switching: R%d <-> R%d", data.row1+1, data.row2+1));
-			else if(data.type == 2)
-				ps.println(String.format("Row Multiplication: R%d <- (%s) * R%d", data.row1+1, data.mul, data.row1+1));
-			else if(data.type == 3)
-				ps.println(String.format("Row Addition: R%d <- R%d + (%s) * R%d", data.row1+1, data.row1+1, data.mul, data.row2+1));
-			for(i=0; i<data.matrix.getHeight(); i++)
+			ps.println("Reducing to Row Echelon Form(REF): ");
+			while(iter.hasNext())
 			{
-				for(j=0; j<data.matrix.getWidth(); j++)
-					ps.print(String.format("%16s", data.matrix.get(i, j)));
+				ps.print(String.format("Step%3d. ", ++step));
+				data = (Record.Data)iter.next();
+				if(data.type == 0)
+					ps.println(String.format("Undefined value at (%d, %d) automaticlly changed to 0.", data.row1+1, data.row2+1));
+				else if(data.type == 1)
+					ps.println(String.format("Row-switching: R%d <-> R%d", data.row1+1, data.row2+1));
+				else if(data.type == 2)
+					ps.println(String.format("Row Multiplication: R%d <- (%s) * R%d", data.row1+1, data.mul, data.row1+1));
+				else if(data.type == 3)
+					ps.println(String.format("Row Addition: R%d <- R%d + (%s) * R%d", data.row1+1, data.row1+1, data.mul, data.row2+1));
+				for(i=0; i<data.matrix.getHeight(); i++)
+				{
+					for(j=0; j<data.matrix.getWidth(); j++)
+						ps.print(String.format("%"+maxlen+"s", data.matrix.get(i, j)));
+					ps.println();
+				}
 				ps.println();
 			}
-			ps.println();
+			if(rank == width && width == height)
+				ps.println(String.format("Notice: There are %d pivots in this square matrix and thus it is full rank.\n        That means the RREF must be the identity metrix.", rank));
 		}
-		if(rank == width && width == height)
-			ps.println(String.format("Notice: There are %d pivots in this square matrix and thus it is full rank.\n        That means the RREF must be the identity metrix.", rank));
+		else
+			ps.println("This matrix is already in Row Echelon Form(REF).");
 		if(torref.length() > 0)
 		{
 			ps.println("Then we continue to reduce it to Reduced Row Echelon Form(RREF): \n");
@@ -260,7 +283,7 @@ public class MatrixHandler
 				for(i=0; i<data.matrix.getHeight(); i++)
 				{
 					for(j=0; j<data.matrix.getWidth(); j++)
-						ps.print(String.format("%16s", data.matrix.get(i, j)));
+						ps.print(String.format("%"+maxlen+"s", data.matrix.get(i, j)));
 					ps.println();
 				}
 				ps.println();
@@ -268,8 +291,10 @@ public class MatrixHandler
 		}
 		else
 		{
-			ps.println("\nNow it is also in Reduced Row Echelon Form(RREF). \n");
+			ps.println("\nIt is also in Reduced Row Echelon Form(RREF). \n");
 		}
+		ps.println("The Reduced Row Echelon Form(RREF):");
+		ps.println(rref);
 		if(rank == 0)
 			ps.println("There are no pivots and thus all variables are free variables.");
 		else if(rank == 1)
@@ -361,10 +386,9 @@ public class MatrixHandler
 			ps.println(nullspace);
 		}
 
-				
-		if(det.getDenominator() != 0)
+		if(det.valid())
 		{
-			if(det.getNumerator() != 0)
+			if(!det.iszero())
 			{
 				ps.println("The determinant of this matrix is:");
 				ps.print("det(A) = ");
@@ -404,7 +428,7 @@ public class MatrixHandler
 						for(i=0; i<data.matrix.getHeight(); i++)
 						{
 							for(j=0; j<data.matrix.getWidth(); j++)
-								ps.print(String.format("%16s", data.matrix.get(i, j)));
+								ps.print(String.format("%"+maxlen+"s", data.matrix.get(i, j)));
 							ps.println();
 						}
 						ps.println();

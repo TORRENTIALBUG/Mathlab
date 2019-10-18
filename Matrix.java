@@ -1,5 +1,7 @@
 package Mathlab;
 
+import java.math.*;
+
 public class Matrix
 {
 	Fraction[][] table;
@@ -22,6 +24,10 @@ public class Matrix
 		return table[i][j];
 	}
 	public void set(int i, int j, int value)
+	{
+		table[i][j] = new Fraction(value);
+	}
+	public void set(int i, int j, BigInteger value)
 	{
 		table[i][j] = new Fraction(value);
 	}
@@ -89,6 +95,21 @@ public class Matrix
 				t.set(i, j, get(j, i));
 		return t;
 	}
+	public Matrix multiply(Matrix m)
+	{
+		if(m.getHeight() != table[0].length)
+			return null;
+		Matrix result = new Matrix(table.length, m.getWidth());
+		for(int i=0; i<table.length; i++)
+			for(int j=0; j<m.getWidth(); j++)
+			{
+				Fraction sum = new Fraction(0);
+				for(int k=0; k<table[0].length; k++)
+					sum = sum.plus(get(i, k).multiply(m.get(k, j)));
+				result.set(i, j, sum);
+			}
+		return result;
+	}
 	public Matrix copy()
 	{
 		Matrix c = new Matrix(table.length, table[0].length);
@@ -97,9 +118,8 @@ public class Matrix
 				c.set(i, j, get(i, j));
 		return c;
 	}
-	public String toString()
+	public int getMaxlen()
 	{
-		StringBuffer sb = new StringBuffer();
 		int maxlen = 0, len;
 		for(int i=0; i<table.length; i++)
 			for(int j=0; j<table[i].length; j++)
@@ -108,7 +128,12 @@ public class Matrix
 				if(len > maxlen)
 					maxlen = len;
 			}
-		String fstr = "%"+(maxlen+1)+"s";
+		return maxlen+1;
+	}
+	public String toString()
+	{
+		StringBuffer sb = new StringBuffer();
+		String fstr = "%"+getMaxlen()+"s";
 		sb.append(table.length);
 		sb.append("x");
 		sb.append(table[0].length);

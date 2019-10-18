@@ -197,12 +197,11 @@ public class Lab
 		{
 			System.out.println("\nThe matrix now is:");
 			System.out.println(m);
-			input = input(new String[]{"Solve everthing and print it out (may be long)", "Solve everything and save the result to a text file", "Find its REF", "Find its RREF", "Find the inverse (if exists)", "Calculate the determinant (if exists)", "Find a basis of its column space", "Find a basis of its row space", "Find a basis of its null space", "Transpose it to find more", "Edit this matrix"});
+			input = input(new String[]{"Solve everything and print it out (may be long)", "Solve everything and save to a text file", "Find its REF", "Find its RREF", "Find the inverse (if exists)", "Calculate the determinant (if exists)", "Find a basis of its column space", "Find a basis of its row space", "Find a basis of its null space", "Solve the linear system Ax=b", "Transpose it to find more", "Edit this matrix"});
 			
 			if(input == 1)
 			{
 				mh.printRecord(System.out);
-				sline();
 			}
 			else if(input == 2)
 			{
@@ -213,15 +212,16 @@ public class Lab
 				{
 					File file = new File(filename);
 					if(file.exists())
-						System.out.println(String.format("File [%s] updated.", filename));
+						System.out.print(String.format("File [%s] updating..", filename));
 					else
-						System.out.println(String.format("File [%s] created.", filename));
+						System.out.print(String.format("File [%s] creating..", filename));
 					PrintStream ps = new PrintStream(file);
 					ps.print("This text file is created automaticlly at ");
 					ps.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime()));
 					ps.println("\nThe original matrix is:");
 					ps.println(m.toString());
 					mh.printRecord(ps);
+					System.out.println("\b\b\b\b\bed.  ");
 				}
 				catch(Exception e)
 				{
@@ -242,9 +242,12 @@ public class Lab
 				if(mh.getInverse() == null)
 					System.out.println("The inverse does not exist.");
 				else
+				{
+					System.out.println("The inverse of this matrix is:");
 					System.out.println(mh.getInverse());
+				}
 			else if(input == 6)
-				if(mh.getDet().getDenominator() != 0)
+				if(mh.getDet().valid())
 					System.out.println("The determinant is: " + mh.getDet());
 				else
 					System.out.println("The determinant does not exist. ");
@@ -274,10 +277,101 @@ public class Lab
 				}
 			else if(input == 10)
 			{
+				Matrix b = new Matrix(m.getHeight(), 1);
+				System.out.println("The enter the vector b:");
+				inputM(b);
+				Matrix mb = new Matrix(m.getHeight(), m.getWidth()+1);
+				int i, j;
+				int maxlen = m.getMaxlen();
+				Fraction f=null;
+				for(i=0; i<m.getHeight(); i++)
+				{
+					for(j=0; j<m.getWidth(); j++)
+						mb.set(i, j, m.get(i, j));
+					mb.set(i, j, b.get(i, 0));
+				}
+				System.out.println("\nThat is, ");
+				boolean allzero;
+				boolean inconsistent=false;
+				for(i=0; i<m.getHeight(); i++)
+				{
+					allzero = true;
+					for(j=0; j<m.getWidth(); j++)
+					{
+						f = m.get(i, j);
+						if(!f.iszero())
+						{
+							if(!allzero)
+								System.out.print(" + ");
+							else
+								System.out.print("   ");
+							System.out.print(String.format("%"+maxlen+"s * x_%-2d", f, j+1));
+							allzero = false;
+						}
+						else if(j == m.getWidth()-1 && allzero)
+						{
+								System.out.print(new String(new char[maxlen+7]).replace((char)0, (char)32));
+								System.out.print(" 0 ");
+								if(!b.get(i, 0).iszero())
+									inconsistent = true;
+						}
+						else
+							System.out.print(new String(new char[maxlen+10]).replace((char)0, (char)32));
+					}
+					System.out.print(" = ");
+					System.out.println(b.get(i, 0));
+				}
+				MatrixHandler solver = new MatrixHandler(mb);
+				for(i=0; i<mb.getHeight(); i++)
+				{
+					for(j=0; j<mb.getWidth()-1; j++)
+						if(!solver.getRREF().get(i, j).iszero())
+							break;
+					if(j==m.getWidth()-1)
+						if(!solver.getRREF().get(i, j).iszero())
+						{
+							inconsistent = true;
+							break;
+						}
+				}
+				if(mh.getRank()==m.getWidth() && !inconsistent)
+				{
+					Matrix mbt = new Matrix(mh.getRank(), mh.getRank()+1);
+					for(i=0; i<mh.getRank(); i++)
+						for(j=0; j<mh.getRank()+1; j++)
+							mbt.set(i, j, mb.get(i, j));
+					solver = new MatrixHandler(mbt);
+					System.out.print("The unique solution of this system is:\n{");
+				}
+				else
+				{
+					System.out.print("\nThe system is inconsistent.\nWe cannot find a exactly solution for this system.\nAs an alternative, we can find the Least Square Approximation:\n{");
+					Matrix mt = m.getTranspose();
+					Matrix mtm = mt.multiply(m);
+					b = mt.multiply(b);
+					mb = new Matrix(mtm.getWidth(), mtm.getWidth()+1);
+					for(i=0; i<mtm.getWidth(); i++)
+					{
+						for(j=0; j<mtm.getWidth(); j++)
+							mb.set(i, j, mtm.get(i, j));
+						mb.set(i, j, b.get(i, 0));
+					}	
+					solver = new MatrixHandler(mb);
+				}
+				for(i=0; i<m.getWidth(); i++)
+				{
+					System.out.print(String.format("x_%d = %s", i+1, solver.getRREF().get(i, solver.getMatrix().getWidth()-1)));
+					if(i != m.getWidth()-1)
+						System.out.print(", ");
+				}
+				System.out.println("}");
+			}
+			else if(input == 11)
+			{
 				m = m.getTranspose();
 				mh = new MatrixHandler(m);
 			}
-			else if(input == 11)
+			else if(input == 12)
 			{
 				System.out.println("\nThe matrix now is:");
 				System.out.println(m);
@@ -385,7 +479,7 @@ public class Lab
 				}
 				mh = new MatrixHandler(m);
 			}
-		
+			sline();
 		}
 	}
 }
