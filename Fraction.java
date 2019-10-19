@@ -84,7 +84,7 @@ public class Fraction
 	}
 	public boolean valid()
 	{
-		return (denominator.compareTo(BigInteger.ZERO)!=0);
+		return (denominator != null && numerator != null && denominator.compareTo(BigInteger.ZERO)!=0);
 	}
 	public Fraction plus(Fraction op2)
 	{

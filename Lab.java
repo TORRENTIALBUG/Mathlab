@@ -4,6 +4,8 @@ import java.io.*;
 import java.util.*;
 import java.text.*;
 import java.util.regex.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.Toolkit;
 
 public class Lab
 {
@@ -197,7 +199,7 @@ public class Lab
 		{
 			System.out.println("\nThe matrix now is:");
 			System.out.println(m);
-			input = input(new String[]{"Solve everything and print it out (may be long)", "Solve everything and save to a text file", "Find its REF", "Find its RREF", "Find the inverse (if exists)", "Calculate the determinant (if exists)", "Find a basis of its column space", "Find a basis of its row space", "Find a basis of its null space", "Solve the linear system Ax=b", "Transpose it to find more", "Edit this matrix"});
+			input = input(new String[]{"Solve everything and print it out (may be long)", "Solve everything and save to a text file", "Find its REF", "Find its RREF", "Find the inverse (if exists)", "Calculate the determinant (if exists)", "Find a basis of its column space", "Find a basis of its row space", "Find a basis of its null space", "Solve the linear system Ax=b", "Transpose it to find more", "Edit this matrix", "Print the formated matrix"});
 			
 			if(input == 1)
 			{
@@ -434,6 +436,7 @@ public class Lab
 			{
 				m = m.getTranspose();
 				mh = new MatrixHandler(m);
+				System.out.println("Finished.");
 			}
 			else if(input == 12)
 			{
@@ -542,6 +545,28 @@ public class Lab
 							m.set(j, i, numbers.remove(0));
 				}
 				mh = new MatrixHandler(m);
+				System.out.println("Finished.");
+			}
+			else if(input == 13)
+			{
+				StringBuffer formatedMat = new StringBuffer();
+				formatedMat.append("[");
+				for(int i=0; i<m.getHeight(); i++)
+				{
+					for(int j=0; j<m.getWidth(); j++)
+					{
+						formatedMat.append(m.get(i, j));
+						if(j != m.getWidth()-1)
+							formatedMat.append(", ");
+					}
+					if(i != m.getHeight()-1)
+						formatedMat.append("; ");
+				}
+				formatedMat.append("]");
+				System.out.println(String.format("The formated matrix is:\n%s\n\nIt should have been copied to the clipboard.", formatedMat));
+				try{
+					Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(formatedMat.toString()), null);
+				}catch(Exception e){System.out.println("Something happens. :(");}
 			}
 			sline();
 		}
