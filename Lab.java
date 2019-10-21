@@ -199,7 +199,7 @@ public class Lab
 		{
 			System.out.println("\nThe matrix now is:");
 			System.out.println(m);
-			input = input(new String[]{"Solve everything and print it out (may be long)", "Solve everything and save to a text file", "Find its REF", "Find its RREF", "Find the inverse (if exists)", "Calculate the determinant (if exists)", "Find a basis of its column space", "Find a basis of its row space", "Find a basis of its null space", "Solve the linear system Ax=b", "Transpose it to find more", "Edit this matrix", "Print the formated matrix"});
+			input = input(new String[]{"Solve everything and print it out (may be long)", "Solve everything and save to a text file", "Find its REF", "Find its RREF", "Find the inverse (if exists)", "Calculate the determinant (if exists)", "Find the rank and nullity", "Find a basis of its column space", "Find a basis of its row space", "Find a basis of its null space", "Solve the linear system Ax=b", "Transpose it to find more", "Edit this matrix", "Print the formated matrix"});
 			
 			if(input == 1)
 			{
@@ -254,6 +254,8 @@ public class Lab
 				else
 					System.out.println("The determinant does not exist. ");
 			else if(input == 7)
+				System.out.println(String.format("The rank is %d, and the nullity is %d.\nWe can see that RANK + NULLITY = %d = (the number of columns).", mh.getRank(), mh.getNullity(), mh.getMatrix().getWidth()));
+			else if(input == 8)
 				if(mh.getRank() == 0)
 					System.out.println("The rank is 0, and thus the column space only contains the zero vector.");
 				else
@@ -261,7 +263,7 @@ public class Lab
 					System.out.println("A basis of the column space of this matrix is:");
 					System.out.println(mh.getColspace());
 				}
-			else if(input == 8)
+			else if(input == 9)
 				if(mh.getRank() == 0)
 					System.out.println("The rank is 0, and thus the row space only contains the zero vector.");
 				else
@@ -269,7 +271,7 @@ public class Lab
 					System.out.println("A basis of the row space of this matrix is:");
 					System.out.println(mh.getRowspace());
 				}
-			else if(input == 9)
+			else if(input == 10)
 				if(mh.getNullity() == 0)
 					System.out.println("This matrix is full-rank, and thus the null space only contains the zero vector.");
 				else
@@ -277,7 +279,7 @@ public class Lab
 					System.out.println("The null space matrix is:");
 					System.out.println(mh.getNullspace());
 				}
-			else if(input == 10)
+			else if(input == 11)
 			{
 				Matrix b = new Matrix(m.getHeight(), 1);
 				System.out.println("The enter the vector b:");
@@ -432,17 +434,17 @@ public class Lab
 				}
 				System.out.println("}");
 			}
-			else if(input == 11)
+			else if(input == 12)
 			{
 				m = m.getTranspose();
 				mh = new MatrixHandler(m);
 				System.out.println("Finished.");
 			}
-			else if(input == 12)
+			else if(input == 13)
 			{
 				System.out.println("\nThe matrix now is:");
 				System.out.println(m);
-				input = input(new String[]{"Edit one entry", "Resize the matrix", "Delete one row", "Delete one column", "Re-enter one row", "Re-enter one column", "Fill with one number", "Keep the upper triangle", "Keep the lower triangle", "Randomly fill", "Shuffle"});
+				input = input(new String[]{"Edit one entry", "Resize the matrix", "Delete one row", "Delete one column", "Re-enter one row", "Re-enter one column", "Fill with one number", "Keep the upper triangle", "Keep the lower triangle", "Randomly fill", "Shuffle", "Return"});
 				if(input == 1)
 					m.set(inputI("Enter the row of the entry you want to edit:", 1, m.getHeight())-1,
 						inputI("Enter the column of the entry you want to edit:", 1, m.getWidth())-1,
@@ -544,10 +546,15 @@ public class Lab
 						for(int j=0; j<m.getHeight(); j++)
 							m.set(j, i, numbers.remove(0));
 				}
-				mh = new MatrixHandler(m);
-				System.out.println("Finished.");
+				if(input != 12)
+				{
+					mh = new MatrixHandler(m);
+					System.out.println("Finished.");
+				}
+				else
+					System.out.println("OK.");
 			}
-			else if(input == 13)
+			else if(input == 14)
 			{
 				StringBuffer formatedMat = new StringBuffer();
 				formatedMat.append("[");

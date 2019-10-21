@@ -193,12 +193,22 @@ public class MatrixHandler
 					for(j=0; j<height; j++)
 						inverse.set(j, i, (j==i-width ? 1 : 0));
 				findinverse.append(4, 0, 0, null, inverse.copy());
-				ListIterator iter = toref.iter();
+				lenupdate(inverse);
+				ListIterator<Record.Data> iter = toref.iter();
 				Record.Data data;
 				i = 0;
-				while(iter.hasNext())
+				while(true)
 				{
-					data = (Record.Data)iter.next();
+					if(!iter.hasNext())
+						if(i==0)
+						{
+							iter = torref.iter();
+							i++;
+							continue;
+						}
+						else
+							break;
+					data = iter.next();
 					if(data.type == 1)
 						inverse.rowop1(data.row1, data.row2);
 					else if(data.type == 2)
@@ -207,11 +217,6 @@ public class MatrixHandler
 						inverse.rowop3(data.row1, data.row2, data.mul);
 					lenupdate(inverse);
 					findinverse.append(data.type, data.row1, data.row2, data.mul, inverse.copy());
-					if(i==0 && !iter.hasNext())
-					{
-						iter = torref.iter();
-						i++;
-					}
 				}
 				Matrix temp = new Matrix(width, height);
 				for(i=0; i<width; i++)
@@ -234,7 +239,7 @@ public class MatrixHandler
 	}
 	public void printRecord(PrintStream ps)
 	{
-		ListIterator iter = toref.iter();
+		ListIterator<Record.Data> iter = toref.iter();
 		Record.Data data;
 		int step = 0;
 		int i, j;
@@ -244,7 +249,7 @@ public class MatrixHandler
 			while(iter.hasNext())
 			{
 				ps.print(String.format("Step%3d. ", ++step));
-				data = (Record.Data)iter.next();
+				data = iter.next();
 				if(data.type == 0)
 					ps.println(String.format("Undefined value at (%d, %d) automaticlly changed to 0.", data.row1+1, data.row2+1));
 				else if(data.type == 1)
@@ -273,7 +278,7 @@ public class MatrixHandler
 			while(iter.hasNext())
 			{
 				ps.print(String.format("Step%3d. ", ++step));
-				data = (Record.Data)iter.next();
+				data = iter.next();
 				if(data.type == 1)
 					ps.println(String.format("Row-switching: R%d <-> R%d", data.row1+1, data.row2+1));
 				else if(data.type == 2)
@@ -416,7 +421,7 @@ public class MatrixHandler
 					while(iter.hasNext())
 					{
 						ps.print(String.format("Step%3d. ", ++step));
-						data = (Record.Data)iter.next();
+						data = iter.next();
 						if(data.type == 1)
 							ps.println(String.format("Row-switching: R%d <-> R%d", data.row1+1, data.row2+1));
 						else if(data.type == 2)
@@ -433,7 +438,7 @@ public class MatrixHandler
 						}
 						ps.println();
 					}
-					ps.println("\nThe inverse of matrix A is:");
+					ps.println("Since the left side is the identity metrix, the right side is the inverse.\nThe inverse of matrix A is:");
 				}
 				ps.println(inverse);
 				
@@ -485,12 +490,12 @@ public class MatrixHandler
 	{
 		return rank;
 	}
-	public Fraction getDet()
-	{
-		return det;
-	}
 	public int getNullity()
 	{
 		return nullity;
+	}
+	public Fraction getDet()
+	{
+		return det;
 	}
 }

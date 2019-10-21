@@ -44,7 +44,7 @@ public class Record
 		return length;
 	}	
 
-	public ListIterator iter()
+	public ListIterator<Data> iter()
 	{
 		return data.listIterator(0);
 	}
